@@ -28,4 +28,28 @@ public class CalendarUtilsTest {
     void getMonthsTest() {
         List<String> months = CalendarUtils.getMonths();
     }
+
+    @Test
+    void getDaysOfWeekTest() {
+        List<String> daysOfWeek = CalendarUtils.getDaysOfWeek();
+        Assertions.assertEquals(7,daysOfWeek.size());
+    }
+
+    @Test
+    void isBisestileTrueTest() {
+        boolean isBisestile = CalendarUtils.isBisestile("2020");
+        Assertions.assertEquals(true,isBisestile);
+    }
+
+    @Test
+    void isBisestileFalseTest() {
+        boolean isBisestile = CalendarUtils.isBisestile("2022");
+        Assertions.assertEquals(false,isBisestile);
+    }
+
+    @Test
+    void nowTest() {
+        String string = CalendarUtils.now();
+        Assertions.assertNotNull(string);
+    }
 }
