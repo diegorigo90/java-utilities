@@ -7,18 +7,19 @@ import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class JwtUtils {
-    public static String generateJwtToken(String mySecret, Map<String, String> claims, Date expirationDate) {
+    public static String generateJwtToken(String mySecret,
+                                          Map<String, String> claims,
+                                          Date expirationDate) {
         JWTCreator.Builder builder = JWT.create();
         for (Map.Entry<String, String> claim : claims.entrySet()) {
             builder.withClaim(claim.getKey(), claim.getValue());
         }
-        return builder
-                .withExpiresAt(expirationDate)
-                .sign(Algorithm.HMAC512(mySecret));
+        return builder.withExpiresAt(expirationDate)
+                      .sign(Algorithm.HMAC512(mySecret));
     }
 
     public static JwtInfoDto decodeJwtToken(String jwtToken) {
@@ -34,11 +35,10 @@ public class JwtUtils {
 
     private static Map<String, String> retrieveStringClaims(DecodedJWT decodedJWT) {
         Map<String, Claim> claims = decodedJWT.getClaims();
-        return claims
-                .entrySet()
-                .stream()
-                .filter(item -> item.getValue().getClass().equals(String.class))
-                .collect(Collectors.toMap(item -> item.getKey(),
-                                          item -> item.getValue().asString()));
+
+        Map<String, String> result = new HashMap<>();
+        claims.forEach((key, value) -> result.put(key,
+                                                  value.asString()));
+        return result;
     }
 }

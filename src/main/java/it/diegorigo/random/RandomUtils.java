@@ -9,7 +9,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class RandomUtils {
-    private static Random random = new Random(new Date().getTime());
+    private static final Random random = new Random(new Date().getTime());
 
     public static Stream<Integer> randomIntegerStream(int n,
                                                       int bound) {

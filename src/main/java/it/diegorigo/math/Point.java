@@ -3,8 +3,8 @@ package it.diegorigo.math;
 import java.math.BigDecimal;
 
 public class Point {
-    private BigDecimal x;
-    private BigDecimal y;
+    private final BigDecimal x;
+    private final BigDecimal y;
 
     public Point(BigDecimal x,
                  BigDecimal y) {
@@ -16,15 +16,7 @@ public class Point {
         return x;
     }
 
-    public void setX(BigDecimal x) {
-        this.x = x;
-    }
-
     public BigDecimal getY() {
         return y;
-    }
-
-    public void setY(BigDecimal y) {
-        this.y = y;
     }
 }

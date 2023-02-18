@@ -17,6 +17,7 @@ public class JwtUtilsTest {
         Map<String, String> claims = new HashMap<>();
         claims.put("name", "Ciccio");
         claims.put("surname","Panza");
+        claims.put("age","12");
         Date expirationDate = new Date();
         String token = JwtUtils.generateJwtToken(mySecret, claims, expirationDate);
 

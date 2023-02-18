@@ -27,6 +27,7 @@ public class CalendarUtilsTest {
     @Test
     void getMonthsTest() {
         List<String> months = CalendarUtils.getMonths();
+        Assertions.assertEquals(12,months.size());
     }
 
     @Test
@@ -38,13 +39,13 @@ public class CalendarUtilsTest {
     @Test
     void isBisestileTrueTest() {
         boolean isBisestile = CalendarUtils.isBisestile("2020");
-        Assertions.assertEquals(true,isBisestile);
+        Assertions.assertTrue(isBisestile);
     }
 
     @Test
     void isBisestileFalseTest() {
         boolean isBisestile = CalendarUtils.isBisestile("2022");
-        Assertions.assertEquals(false,isBisestile);
+        Assertions.assertFalse(isBisestile);
     }
 
     @Test
