@@ -13,6 +13,16 @@
 
 * Big Decimals Utils
   * Square root of BigDecimal
+  * Convert list of strings/integers/doubles to list of BigDecimals
+
+* Math Utils
+  * Sum of BigDecimal list
+  * Minimum of BigDecimal list
+  * Maximum of BigDecimal list
+  * Mean of BigDecimal list
+  * Get linspace values (see Octave/Matlab)
+  * Centers of ranges
+  * Histogram of values (compute x,y coordinates for drawing bars
 
 * Print Utils
   * Print as a title
