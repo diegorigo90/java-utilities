@@ -28,24 +28,21 @@ public class CalendarUtilsTest {
     void getMonthsTest() {
         List<String> months = CalendarUtils.getMonths();
         Assertions.assertEquals(12,months.size());
+        Assertions.assertEquals("Aprile",months.get(3));
+        Assertions.assertEquals("Dicembre",months.get(11));
     }
 
     @Test
     void getDaysOfWeekTest() {
         List<String> daysOfWeek = CalendarUtils.getDaysOfWeek();
         Assertions.assertEquals(7,daysOfWeek.size());
+        Assertions.assertEquals("Giovedì",daysOfWeek.get(3));
     }
 
     @Test
-    void isBisestileTrueTest() {
-        boolean isBisestile = CalendarUtils.isBisestile("2020");
-        Assertions.assertTrue(isBisestile);
-    }
-
-    @Test
-    void isBisestileFalseTest() {
-        boolean isBisestile = CalendarUtils.isBisestile("2022");
-        Assertions.assertFalse(isBisestile);
+    void isBisestileTest() {
+        Assertions.assertTrue(CalendarUtils.isBisestile("2020"));
+        Assertions.assertFalse(CalendarUtils.isBisestile("2022"));
     }
 
     @Test

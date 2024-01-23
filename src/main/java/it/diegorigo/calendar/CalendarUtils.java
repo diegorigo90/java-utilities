@@ -1,6 +1,6 @@
 package it.diegorigo.calendar;
 
-import it.diegorigo.strings.StringsUtils;
+import it.diegorigo.strings.StringUtils;
 
 import java.text.SimpleDateFormat;
 import java.time.DayOfWeek;
@@ -30,7 +30,7 @@ public class CalendarUtils {
 
     public static List<String> getMonths() {
         return Arrays.stream(Month.values())
-                     .map(item -> StringsUtils.capitalize(item.getDisplayName(
+                     .map(item -> StringUtils.capitalize(item.getDisplayName(
                              TextStyle.FULL,
                              Locale.getDefault())))
                      .collect(Collectors.toList());
@@ -38,7 +38,7 @@ public class CalendarUtils {
 
     public static List<String> getDaysOfWeek() {
         return Arrays.stream(DayOfWeek.values())
-                     .map(item -> StringsUtils.capitalize(item.getDisplayName(
+                     .map(item -> StringUtils.capitalize(item.getDisplayName(
                              TextStyle.FULL,
                              Locale.getDefault())))
                      .collect(Collectors.toList());
