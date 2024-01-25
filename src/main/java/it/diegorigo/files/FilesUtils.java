@@ -110,4 +110,23 @@ public class FilesUtils {
 
         return String.format("%.1f %s", size, units[unitIndex]);
     }
+
+    public static String fileAsString(Path path) throws UtilityException {
+        try {
+            byte[] fileBytes = Files.readAllBytes(path);
+            return new String(fileBytes);
+        } catch (IOException e) {
+            throw new UtilityException("Errore di lettura del file");
+        }
+    }
+
+    public static String filenameWithoutExtension(File file){
+        String fileName = file.getName();
+        int dotIndex = fileName.lastIndexOf('.');
+        if (dotIndex > 0 && dotIndex < fileName.length() - 1) {
+            return fileName.substring(0, dotIndex);
+        } else {
+            return fileName;
+        }
+    }
 }
