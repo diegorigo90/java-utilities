@@ -2,6 +2,7 @@ package it.diegorigo.files;
 
 import it.diegorigo.exceptions.UtilityException;
 
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -127,6 +128,14 @@ public class FilesUtils {
             return fileName.substring(0, dotIndex);
         } else {
             return fileName;
+        }
+    }
+
+    public static void open(File file) throws UtilityException {
+        try {
+            Desktop.getDesktop().open(file);
+        } catch (IOException e) {
+            throw new UtilityException("Non è stato possibile aprire il file selezionato",e);
         }
     }
 }

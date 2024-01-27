@@ -4,6 +4,7 @@
 
 package it.diegorigo.excel;
 
+import it.diegorigo.exceptions.UtilityException;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.odftoolkit.odfdom.doc.table.OdfTable;
@@ -46,5 +47,18 @@ public class ExcelSheet extends ExcelInfo {
                 yield rows.stream().map(ExcelRow::new).toList();
             }
         };
+    }
+
+    public void autosizeColumns(int numberColumns) throws UtilityException {
+        switch (excelType) {
+            case ODS -> throw new UtilityException("Funzione non ancora supportata");
+            case XLSX -> {
+                for (int i = 0; i < numberColumns; i++) {
+                    sheet.autoSizeColumn(i);
+                }
+            }
+        }
+        ;
+
     }
 }

@@ -6,19 +6,23 @@ package it.diegorigo.excel;
 
 import it.diegorigo.exceptions.UtilityException;
 import it.diegorigo.files.FilesUtils;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.odftoolkit.odfdom.doc.OdfDocument;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ExcelDocument extends ExcelInfo implements AutoCloseable {
 
     private OdfDocument document;
 
     private Workbook workbook;
+
+    private Map<CellStyleType, CellStyle> styles = new HashMap<>();
 
     public ExcelDocument(ExcelType excelType) {
         this.excelType = excelType;
@@ -36,6 +40,7 @@ public class ExcelDocument extends ExcelInfo implements AutoCloseable {
                 case "xlsx":
                     this.excelType = ExcelType.XLSX;
                     workbook = new XSSFWorkbook(file);
+                    createBaseStyles(workbook);
                     break;
                 case "ods":
                     this.excelType = ExcelType.ODS;
@@ -50,6 +55,31 @@ public class ExcelDocument extends ExcelInfo implements AutoCloseable {
         }
     }
 
+    private void createBaseStyles(Workbook workbook) {
+        createHeaderStyle(workbook);
+        createHyperlinkStyle(workbook);
+    }
+
+    private void createHeaderStyle(Workbook workbook) {
+        CellStyle headerStyle = workbook.createCellStyle();
+        headerStyle.setFillForegroundColor(IndexedColors.OLIVE_GREEN.getIndex());
+        headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        Font font = workbook.createFont();
+        font.setBold(true);
+        font.setFontHeightInPoints((short) 15);
+        headerStyle.setFont(font);
+        styles.put(CellStyleType.HEADER, headerStyle);
+    }
+
+    private void createHyperlinkStyle(Workbook workbook) {
+        Font font = workbook.createFont();
+        font.setUnderline(Font.U_SINGLE);
+        font.setColor(IndexedColors.BLUE.getIndex());
+        CellStyle style = workbook.createCellStyle();
+        style.setFont(font);
+        styles.put(CellStyleType.HYPERLINK, style);
+    }
+
     public ExcelSheet getSheet(String sheetName) {
         return switch (excelType) {
             case ODS -> new ExcelSheet(document.getTableByName(sheetName));
@@ -57,14 +87,22 @@ public class ExcelDocument extends ExcelInfo implements AutoCloseable {
         };
     }
 
-    public void save(FileOutputStream fileOut) {
+    public void save(FileOutputStream fileOut) throws UtilityException {
         try {
             switch (excelType) {
                 case ODS -> document.save(fileOut);
                 case XLSX -> workbook.write(fileOut);
             }
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new UtilityException("Errore durante il salvataggio del file", e);
+        }
+    }
+
+    public void save(String filename) throws UtilityException {
+        try (FileOutputStream fos = new FileOutputStream(filename)) {
+            workbook.write(fos);
+        } catch (Exception e) {
+            throw new UtilityException("Errore durante il salvataggio del file", e);
         }
     }
 
@@ -77,6 +115,10 @@ public class ExcelDocument extends ExcelInfo implements AutoCloseable {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void open(File file) throws UtilityException {
+        FilesUtils.open(file);
     }
 
 
