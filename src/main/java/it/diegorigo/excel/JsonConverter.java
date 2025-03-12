@@ -8,26 +8,18 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.awt.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 public class JsonConverter {
 
-    public static void main(String[] args) {
-        toJson(Paths.get("C:\\tmp\\example.xlsx").toFile());
-    }
-
-    public static void toExcel(Path path) throws UtilityException {
-        // TODO
-        JSONArray jsonArray = new JSONArray(FilesUtils.fileAsString(path));
+    public static void toExcel(File file) throws UtilityException {
+        JSONArray jsonArray = new JSONArray(FilesUtils.fileAsString(file));
         try (Workbook workbook = new XSSFWorkbook()) {
             Sheet sheet = workbook.createSheet("Dati");
 
@@ -57,11 +49,11 @@ public class JsonConverter {
 
             String fileName = String.join("_",
                                           DateUtils.isoDateTime(),
-                                          FilesUtils.filenameWithoutExtension(path.toFile()) + ".xlsx");
-            File file = Paths.get("C:/Output", fileName).toFile();
-            try (FileOutputStream fileOut = new FileOutputStream(file)) {
+                                          FilesUtils.filenameWithoutExtension(file) + ".xlsx");
+            File outputFile = file.toPath().getParent().resolve(fileName).toFile();
+            try (FileOutputStream fileOut = new FileOutputStream(outputFile)) {
                 workbook.write(fileOut);
-                Desktop.getDesktop().open(file);
+                FilesUtils.openFile(outputFile);
             } catch (IOException e) {
                 throw new UtilityException("Errore durante il salvataggio del file");
             }
@@ -87,7 +79,7 @@ public class JsonConverter {
                 }
             }
             String jsonString = jsonArray.toString(2);
-            FilesUtils.toFile(jsonString,file.toPath().getParent());
+            FilesUtils.toFile(jsonString, file.toPath().getParent());
 
         } catch (IOException e) {
             e.printStackTrace();

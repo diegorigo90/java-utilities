@@ -121,9 +121,9 @@ public class FilesUtils {
         return String.format("%.1f %s", size, units[unitIndex]);
     }
 
-    public static String fileAsString(Path path) throws UtilityException {
+    public static String fileAsString(File file) throws UtilityException {
         try {
-            byte[] fileBytes = Files.readAllBytes(path);
+            byte[] fileBytes = Files.readAllBytes(file.toPath());
             return new String(fileBytes);
         } catch (IOException e) {
             throw new UtilityException("Errore di lettura del file");
