@@ -2,16 +2,19 @@
  * Copyright (c) Diego Rigo, Sona (VR), 2024.
  */
 
-package it.diegorigo.excel;
+package it.diegorigo.excel.dto;
 
+import it.diegorigo.excel.enums.CellStyleType;
+import it.diegorigo.excel.enums.ExcelType;
 import it.diegorigo.exceptions.UtilityException;
 import it.diegorigo.files.FilesUtils;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.odftoolkit.odfdom.doc.OdfDocument;
+import org.odftoolkit.odfdom.doc.OdfSpreadsheetDocument;
+import org.odftoolkit.odfdom.doc.table.OdfTable;
 
-import java.io.File;
-import java.io.FileOutputStream;
+import java.io.*;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,8 +27,16 @@ public class ExcelDocument extends ExcelInfo implements AutoCloseable {
 
     private Map<CellStyleType, CellStyle> styles = new HashMap<>();
 
-    public ExcelDocument(ExcelType excelType) {
+    public ExcelDocument(ExcelType excelType) throws Exception {
         this.excelType = excelType;
+        switch (excelType) {
+            case XLSX:
+                workbook = new XSSFWorkbook();
+                break;
+            case ODS:
+                document = OdfSpreadsheetDocument.newSpreadsheetDocument();
+                break;
+        }
     }
 
     public ExcelDocument(String path) throws UtilityException {
@@ -35,11 +46,11 @@ public class ExcelDocument extends ExcelInfo implements AutoCloseable {
     public ExcelDocument(File file) throws UtilityException {
         super();
         String extension = FilesUtils.getFileExtension(file);
-        try {
+        try (FileInputStream fileInputStream = new FileInputStream(file)){
             switch (extension) {
                 case "xlsx":
                     this.excelType = ExcelType.XLSX;
-                    workbook = new XSSFWorkbook(file);
+                    workbook = new XSSFWorkbook(fileInputStream);
                     createBaseStyles(workbook);
                     break;
                 case "ods":
@@ -80,6 +91,24 @@ public class ExcelDocument extends ExcelInfo implements AutoCloseable {
         styles.put(CellStyleType.HYPERLINK, style);
     }
 
+    public ExcelSheet createSheet(String sheetname) {
+        return switch (excelType) {
+            case ODS -> {
+                OdfTable table = OdfTable.newTable(document);
+                table.setTableName(sheetname);
+                yield new ExcelSheet(table);
+            }
+            case XLSX -> new ExcelSheet(workbook.createSheet(sheetname));
+        };
+    }
+
+    public ExcelSheet getSheetByIndex(int index) {
+        return switch (excelType) {
+            case ODS -> new ExcelSheet(document.getTableList(true).get(index));
+            case XLSX -> new ExcelSheet(workbook.getSheetAt(index));
+        };
+    }
+
     public ExcelSheet getSheet(String sheetName) {
         return switch (excelType) {
             case ODS -> new ExcelSheet(document.getTableByName(sheetName));
@@ -98,8 +127,19 @@ public class ExcelDocument extends ExcelInfo implements AutoCloseable {
         }
     }
 
-    public void save(String filename) throws UtilityException {
-        try (FileOutputStream fos = new FileOutputStream(filename)) {
+    public void save(ByteArrayOutputStream bos) {
+        try {
+            switch (excelType) {
+                case ODS -> document.save(bos);
+                case XLSX -> workbook.write(bos);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void save(File file) throws UtilityException {
+        try (FileOutputStream fos = new FileOutputStream(file)) {
             workbook.write(fos);
         } catch (Exception e) {
             throw new UtilityException("Errore durante il salvataggio del file", e);
@@ -118,8 +158,15 @@ public class ExcelDocument extends ExcelInfo implements AutoCloseable {
     }
 
     public void open(File file) throws UtilityException {
-        FilesUtils.open(file);
+        FilesUtils.openFile(file);
     }
 
-
+    public byte[] toByteArray() throws UtilityException {
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+            save(bos);
+            return bos.toByteArray();
+        } catch (Exception e) {
+            throw new UtilityException("Error during workbook conversion", e);
+        }
+    }
 }

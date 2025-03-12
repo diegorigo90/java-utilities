@@ -2,8 +2,9 @@
  * Copyright (c) Diego Rigo, Sona (VR), 2024.
  */
 
-package it.diegorigo.excel;
+package it.diegorigo.excel.dto;
 
+import it.diegorigo.excel.enums.ExcelType;
 import it.diegorigo.exceptions.UtilityException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -23,7 +24,6 @@ public class ExcelRow extends ExcelInfo {
     }
 
     public ExcelRow(Row row) {
-
         excelType = ExcelType.XLSX;
         this.row = row;
     }

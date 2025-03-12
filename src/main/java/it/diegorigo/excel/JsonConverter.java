@@ -15,19 +15,18 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
-public class JsonToExcel {
+public class JsonConverter {
 
     public static void main(String[] args) {
-        try {
-            toExcel(Paths.get("C:/creazioni.json"));
-        } catch (UtilityException e) {
-            throw new RuntimeException(e);
-        }
+        toJson(Paths.get("C:\\tmp\\example.xlsx").toFile());
     }
 
     public static void toExcel(Path path) throws UtilityException {
+        // TODO
         JSONArray jsonArray = new JSONArray(FilesUtils.fileAsString(path));
         try (Workbook workbook = new XSSFWorkbook()) {
             Sheet sheet = workbook.createSheet("Dati");
@@ -56,7 +55,9 @@ public class JsonToExcel {
                 }
             }
 
-            String fileName = String.join("_", DateUtils.isoDateTime(), FilesUtils.filenameWithoutExtension(path.toFile()) + ".xlsx");
+            String fileName = String.join("_",
+                                          DateUtils.isoDateTime(),
+                                          FilesUtils.filenameWithoutExtension(path.toFile()) + ".xlsx");
             File file = Paths.get("C:/Output", fileName).toFile();
             try (FileOutputStream fileOut = new FileOutputStream(file)) {
                 workbook.write(fileOut);
@@ -70,47 +71,37 @@ public class JsonToExcel {
 
     }
 
-    public static void toJson(String[] args) {
-        try (FileInputStream fileInputStream = new FileInputStream("input.xlsx")) {
-            // Caricamento del workbook
+    public static void toJson(File file) {
+        try (FileInputStream fileInputStream = new FileInputStream(file)) {
             Workbook workbook = new XSSFWorkbook(fileInputStream);
-
-            // Recupero del foglio desiderato (assume che ci sia solo un foglio nel file Excel)
             Sheet sheet = workbook.getSheetAt(0);
-
-            // Creazione di un array JSON
             JSONArray jsonArray = new JSONArray();
-
-            // Scorrimento delle righe
-            Iterator<Row> rowIterator = sheet.iterator();
-            while (rowIterator.hasNext()) {
-                Row row = rowIterator.next();
-                JSONObject jsonObject = new JSONObject();
-
-                // Scorrimento delle colonne
-                Iterator<Cell> cellIterator = row.cellIterator();
-                while (cellIterator.hasNext()) {
-                    Cell cell = cellIterator.next();
-
-                    // Usa il valore della cella come chiave nel JSON
-                    String key = sheet.getRow(0)
-                                      .getCell(cell.getColumnIndex())
-                                      .getStringCellValue();
-                    String value = getCellValueAsString(cell);
-
-                    jsonObject.put(key, value);
+            boolean firstRow = true;
+            List<String> cols = new ArrayList<>();
+            for (Row row : sheet) {
+                if (firstRow) {
+                    row.forEach(item -> cols.add(getCellValueAsString(item)));
+                    firstRow = false;
+                } else {
+                    jsonArray.put(convertRowToJsonObject(row, cols));
                 }
-
-                // Aggiungi l'oggetto JSON all'array
-                jsonArray.put(jsonObject);
             }
-
-            // Stampa l'array JSON
-            System.out.println(jsonArray.toString(2));
+            String jsonString = jsonArray.toString(2);
+            FilesUtils.toFile(jsonString,file.toPath().getParent());
 
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private static JSONObject convertRowToJsonObject(Row row,
+                                                     List<String> cols) {
+        JSONObject jsonObject = new JSONObject();
+        int index = 0;
+        for (Cell cell : row) {
+            jsonObject.put(cols.get(index++), getCellValueAsString(cell));
+        }
+        return jsonObject;
     }
 
     private static String getCellValueAsString(Cell cell) {

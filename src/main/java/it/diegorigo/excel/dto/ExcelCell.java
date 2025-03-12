@@ -2,8 +2,11 @@
  * Copyright (c) Diego Rigo, Sona (VR), 2024.
  */
 
-package it.diegorigo.excel;
+package it.diegorigo.excel.dto;
 
+import it.diegorigo.excel.enums.ExcelType;
+import it.diegorigo.excel.enums.HorizontalAlignment;
+import it.diegorigo.numbers.NumbersUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.odftoolkit.odfdom.doc.table.OdfTableCell;
 
@@ -37,6 +40,27 @@ public class ExcelCell extends ExcelInfo {
         }
     }
 
+    public Double getNumericValue() {
+        return switch (excelType) {
+            case ODS -> odfTableCell.getDoubleValue();
+            case XLSX -> cell.getNumericCellValue();
+        };
+    }
+
+    public void setNumericValue(int value) {
+        switch (excelType) {
+            case ODS -> odfTableCell.setDoubleValue((double) value);
+            case XLSX -> cell.setCellValue(value);
+        }
+    }
+
+    public int getIntegerValue() {
+        return switch (excelType) {
+            case ODS -> NumbersUtils.getIntegerValue(odfTableCell.getDoubleValue());
+            case XLSX -> NumbersUtils.getIntegerValue(cell.getNumericCellValue());
+        };
+    }
+
     public void setHorizontalAlignment(HorizontalAlignment horizontalAlignment) {
         switch (excelType) {
             case ODS -> odfTableCell.setHorizontalAlignment(horizontalAlignment.toString());
@@ -51,27 +75,5 @@ public class ExcelCell extends ExcelInfo {
             case RIGHT -> org.apache.poi.ss.usermodel.HorizontalAlignment.RIGHT;
             case CENTER -> org.apache.poi.ss.usermodel.HorizontalAlignment.CENTER;
         };
-    }
-
-    public Double getNumericValue() {
-        return switch (excelType) {
-            case ODS -> odfTableCell.getDoubleValue();
-            case XLSX -> cell.getNumericCellValue();
-        };
-    }
-
-    public int getIntegerValue() {
-        return switch (excelType) {
-            case ODS -> getIntegerValue(odfTableCell.getDoubleValue());
-            case XLSX -> getIntegerValue(cell.getNumericCellValue());
-        };
-    }
-
-    public static int getIntegerValue(Double doubleValue) {
-        try {
-            return doubleValue.intValue();
-        } catch (Exception e) {
-            return -1;
-        }
     }
 }
