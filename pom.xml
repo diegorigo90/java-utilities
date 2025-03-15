@@ -6,7 +6,7 @@
 
     <groupId>it.diegorigo</groupId>
     <artifactId>utilities</artifactId>
-    <version>1.0-RELEASE</version>
+    <version>1.0.0-RELEASE</version>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>

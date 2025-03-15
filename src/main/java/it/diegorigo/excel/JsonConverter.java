@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -86,17 +87,44 @@ public class JsonConverter {
         }
     }
 
+
+    public static JSONArray readAsJson(File file) {
+        try (FileInputStream fileInputStream = new FileInputStream(file)) {
+            Workbook workbook = new XSSFWorkbook(fileInputStream);
+            Sheet sheet = workbook.getSheetAt(0);
+            JSONArray jsonArray = new JSONArray();
+            boolean firstRow = true;
+            List<String> cols = new ArrayList<>();
+            for (Row row : sheet) {
+                if (firstRow) {
+                    row.forEach(item -> cols.add(getCellValueAsString(item)));
+                    firstRow = false;
+                } else {
+                    jsonArray.put(convertRowToJsonObject(row, cols));
+                }
+            }
+            return jsonArray;
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
     private static JSONObject convertRowToJsonObject(Row row,
                                                      List<String> cols) {
         JSONObject jsonObject = new JSONObject();
-        int index = 0;
-        for (Cell cell : row) {
-            jsonObject.put(cols.get(index++), getCellValueAsString(cell));
+        for (int i = 0; i<cols.size(); i++) {
+            jsonObject.put(cols.get(i), getCellValueAsString(row.getCell(i)));
         }
         return jsonObject;
     }
 
     private static String getCellValueAsString(Cell cell) {
+        if (cell == null){
+            return "";
+        }
         switch (cell.getCellType()) {
             case STRING:
                 return cell.getStringCellValue();
