@@ -139,11 +139,27 @@ public class ExcelDocument extends ExcelInfo implements AutoCloseable {
     }
 
     public void save(File file) throws UtilityException {
-        try (FileOutputStream fos = new FileOutputStream(file)) {
-            workbook.write(fos);
+        try {
+            switch (excelType) {
+                case ODS -> {
+                    try (FileOutputStream fos = new FileOutputStream(file)) {
+                        document.save(fos);
+                    } catch (Exception e) {
+                        throw new UtilityException("Errore durante il salvataggio del file", e);
+                    }
+                }
+                case XLSX -> {
+                    try (FileOutputStream fos = new FileOutputStream(file)) {
+                        workbook.write(fos);
+                    } catch (Exception e) {
+                        throw new UtilityException("Errore durante il salvataggio del file", e);
+                    }
+                }
+            }
         } catch (Exception e) {
-            throw new UtilityException("Errore durante il salvataggio del file", e);
+            throw new RuntimeException(e);
         }
+
     }
 
     public void close() {
