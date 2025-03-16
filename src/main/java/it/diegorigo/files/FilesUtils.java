@@ -8,9 +8,10 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -215,7 +216,8 @@ public class FilesUtils {
         return files;
     }
 
-    public static void toFile(String content, File file){
+    public static void toFile(String content,
+                              File file) {
         try (FileWriter writer = new FileWriter(file)) {
             writer.write(content);
             System.out.println("Text written to " + file.getAbsolutePath());
@@ -224,7 +226,8 @@ public class FilesUtils {
         }
     }
 
-    public static void toFile(String content, Path path){
+    public static void toFile(String content,
+                              Path path) {
         File file = path.resolve(DateUtils.getTimestampAsString() + "_exported.json").toFile();
         try (FileWriter writer = new FileWriter(file)) {
             writer.write(content);
@@ -232,5 +235,24 @@ public class FilesUtils {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static List<Path> getModifiedFiles(Path path,
+                                              LocalDateTime referenceTime) throws IOException {
+        List<Path> modifiedList = new ArrayList<>();
+        Files.walkFileTree(path, new SimpleFileVisitor<>() {
+            @Override
+            public FileVisitResult visitFile(Path file,
+                                             BasicFileAttributes attrs) {
+                LocalDateTime fileTime = LocalDateTime.ofInstant(attrs.lastModifiedTime()
+                                                                      .toInstant(),
+                                                                 ZoneId.systemDefault());
+                if (fileTime.isAfter(referenceTime)) {
+                    modifiedList.add(file);
+                }
+                return FileVisitResult.CONTINUE;
+            }
+        });
+        return modifiedList;
     }
 }
