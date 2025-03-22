@@ -63,7 +63,7 @@ public class ExcelCell extends ExcelInfo {
 
     public void setHorizontalAlignment(HorizontalAlignment horizontalAlignment) {
         switch (excelType) {
-            case ODS -> odfTableCell.setHorizontalAlignment(horizontalAlignment.toString());
+            case ODS -> odfTableCell.setHorizontalAlignment(horizontalAlignment.toString().toLowerCase());
             case XLSX ->
                     cell.getCellStyle().setAlignment(convertToPoiAlignment(horizontalAlignment));
         }
