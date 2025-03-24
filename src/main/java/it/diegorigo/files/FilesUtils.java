@@ -52,7 +52,7 @@ public class FilesUtils {
         if (dotIndex > 0 && dotIndex < fileName.length() - 1) {
             return fileName.substring(dotIndex + 1);
         } else {
-            throw new UtilityException("The selected path has no extension");
+            throw new UtilityException("The selected path has no extension: " + file.getAbsolutePath());
         }
     }
 
@@ -201,7 +201,7 @@ public class FilesUtils {
     public static List<File> getExcelFiles(Path folderPath) throws UtilityException {
         List<File> files = new ArrayList<>();
         try (Stream<Path> paths = Files.list(folderPath)) {
-            paths.map(Path::toFile).forEach(file -> {
+            paths.map(Path::toFile).filter(File::isFile).forEach(file -> {
                 try {
                     if (FilesUtils.isExcel(file)) {
                         files.add(file);
