@@ -21,6 +21,12 @@ public class StringUtils {
         return String.format("%" + character + n + "d", Integer.parseInt(value));
     }
 
+    public static String leftPad(Long value,
+                                 String character,
+                                 int n) {
+        return String.format("%" + character + n + "d", value);
+    }
+
     public static String leftPad(Integer value,
                                  String character,
                                  int n) {
