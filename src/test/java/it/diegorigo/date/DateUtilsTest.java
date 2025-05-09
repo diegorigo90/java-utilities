@@ -26,7 +26,7 @@ public class DateUtilsTest {
         LocalDate today = LocalDate.now();
         String result = DateUtils.italianDate();
 
-        Assertions.assertEquals(Integer.toString(today.getDayOfMonth()), result.substring(0,2));
+        Assertions.assertEquals(today.getDayOfMonth(), Integer.valueOf(result.substring(0,2)));
         Assertions.assertEquals(StringUtils.leftPad(today.getMonthValue(),"0",2), result.substring(3,5));
         Assertions.assertEquals(Integer.toString(today.getYear()), result.substring(6));
     }

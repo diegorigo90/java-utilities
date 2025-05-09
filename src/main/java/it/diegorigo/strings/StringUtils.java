@@ -15,14 +15,20 @@ public class StringUtils {
         return CaseUtils.toCamelCase(string, true, ' ');
     }
 
-    public static String leftPad(Object value,
+    public static String leftPad(String value,
                                  String character,
                                  int n) {
-        return String.format("%" + character + n + "s", value);
+        return String.format("%" + character + n + "d", Integer.parseInt(value));
+    }
+
+    public static String leftPad(Integer value,
+                                 String character,
+                                 int n) {
+        return String.format("%" + character + n + "d", value);
     }
 
     public static String leftPadSpaces(Object value,
-                                 int n) {
+                                       int n) {
         return String.format("%" + n + "s", value);
     }
 
