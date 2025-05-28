@@ -1,0 +1,11 @@
+ID,Nome,Cognome,Età,Email,Città
+1,Luca,Rossi,28,luca.rossi@example.com,Roma
+2,Giulia,Bianchi,34,giulia.bianchi@example.com,Milano
+3,Marco,Verdi,41,marco.verdi@example.com,Napoli
+4,Anna,Neri,25,anna.neri@example.com,Torino
+5,Paolo,Galli,30,paolo.galli@example.com,Firenze
+6,Sara,Conti,27,sara.conti@example.com,Bologna
+7,Francesco,Moretti,38,francesco.moretti@example.com,Genova
+8,Elisa,Russo,22,elisa.russo@example.com,Bari
+9,Matteo,Colombo,45,matteo.colombo@example.com,Venezia
+10,Chiara,Greco,31,chiara.greco@example.com,Palermo
