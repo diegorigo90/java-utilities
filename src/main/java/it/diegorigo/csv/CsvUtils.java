@@ -12,12 +12,8 @@ import java.util.List;
 import java.util.Map;
 
 public class CsvUtils {
-    public static List<CsvColumnData> toColumns(File csvFile) throws UtilityException {
-        return toColumns(csvFile, ",");
-    }
 
-    public static List<CsvColumnData> toColumns(File csvFile,
-                                                String delimiter) throws UtilityException {
+    public static List<CsvColumnData> toColumns(File csvFile) throws UtilityException {
 
         List<CsvColumnData> list = new ArrayList<>();
         try {
@@ -26,6 +22,8 @@ public class CsvUtils {
             String headerLine = br.readLine();
             if (headerLine == null)
                 return list;
+
+            String delimiter = detectSeparator(csvFile);
 
             String[] headers = headerLine.split(delimiter);
             int size = headers.length;
@@ -56,4 +54,42 @@ public class CsvUtils {
 
         return list;
     }
+
+    public static String detectSeparator(File csvFile) throws IOException {
+        String[] possibleSeparators = {",", ";", "\t", "|"};
+        int linesToCheck = 5;
+
+        Map<String, Integer> separatorScores = new HashMap<>();
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(csvFile))) {
+            String line;
+            int linesRead = 0;
+
+            while ((line = reader.readLine()) != null && linesRead < linesToCheck) {
+                for (String sep : possibleSeparators) {
+                    int count = countOccurrences(line, sep);
+                    separatorScores.put(sep, separatorScores.getOrDefault(sep, 0) + count);
+                }
+                linesRead++;
+            }
+        }
+
+        return separatorScores.entrySet()
+                              .stream()
+                              .max(Map.Entry.comparingByValue())
+                              .map(Map.Entry::getKey)
+                              .orElse(",");
+    }
+
+    private static int countOccurrences(String line,
+                                        String separator) {
+        int count = 0;
+        for (char ch : line.toCharArray()) {
+            if (Character.toString(ch).equals(separator)) {
+                count++;
+            }
+        }
+        return count;
+    }
+
 }

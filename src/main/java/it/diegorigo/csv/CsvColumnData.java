@@ -12,4 +12,9 @@ import java.util.List;
 public class CsvColumnData {
     private String name;
     private List<String> values;
+
+    @Override
+    public String toString() {
+        return "CsvColumnData{" + "name='" + name + '\'' + '}';
+    }
 }
