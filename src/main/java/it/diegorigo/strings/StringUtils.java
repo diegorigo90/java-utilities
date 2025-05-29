@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class StringUtils {
+    public static final String REGEX_STRANGE_CHARACTERS = "[\u200B\u200C\u200D\uFEFF]";
     public static String capitalize(String text) {
         return org.apache.commons.lang3.StringUtils.capitalize(text);
     }
@@ -49,5 +50,9 @@ public class StringUtils {
 
     public static String emptyString(int i) {
         return IntStream.range(0, i).mapToObj(v -> " ").collect(Collectors.joining());
+    }
+
+    public static String cleanString(String string){
+       return string.replaceAll(REGEX_STRANGE_CHARACTERS, "");
     }
 }

@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class CsvUtilsTest {
 
     @Test
-    void toColumns() throws URISyntaxException, UtilityException {
+    void toColumns() throws Exception {
         URL resource = getClass().getClassLoader().getResource("testCsv.csv");
         assert resource != null;
         File file = new File(resource.toURI());
