@@ -4,10 +4,7 @@ import it.diegorigo.date.DateUtils;
 import it.diegorigo.exceptions.UtilityException;
 import it.diegorigo.strings.StringUtils;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.FilenameFilter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.LocalDateTime;
@@ -17,6 +14,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public class FilesUtils {
 
@@ -65,7 +64,7 @@ public class FilesUtils {
                 if (file.isFile()) {
                     long fileSize = getFileSize(item);
                     FileInfo info = new FileInfo();
-                    info.setName(file.getName());
+                    info.setFilename(file.getName());
                     info.setPath(file.getPath());
                     info.setSize(fileSize);
                     files.add(info);
@@ -87,7 +86,7 @@ public class FilesUtils {
         getFilesList(path).stream()
                           .sorted(Comparator.comparing(FileInfo::getSize,
                                                        Comparator.reverseOrder()))
-                          .forEach(item -> System.out.println(formatFileSize(item.getSize()) + " ----> " + item.getName()));
+                          .forEach(item -> System.out.println(formatFileSize(item.getSize()) + " ----> " + item.getFilename()));
 
     }
 
@@ -96,7 +95,7 @@ public class FilesUtils {
                           .sorted(Comparator.comparing(FileInfo::getSize,
                                                        Comparator.reverseOrder()))
                           .limit(10)
-                          .forEach(item -> System.out.println(formatFileSize(item.getSize()) + " ----> " + item.getName() + " (" + item.getPath() + ")"));
+                          .forEach(item -> System.out.println(formatFileSize(item.getSize()) + " ----> " + item.getFilename() + " (" + item.getPath() + ")"));
 
     }
 
@@ -254,5 +253,24 @@ public class FilesUtils {
             }
         });
         return modifiedList;
+    }
+
+    public static byte[] createZip(List<FileInfo> files) throws IOException {
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             ZipOutputStream zipOut = new ZipOutputStream(baos)) {
+
+            for (int i = 0; i < files.size(); i++) {
+                FileInfo fileInfo = files.get(i);
+
+                ZipEntry zipEntry = new ZipEntry(fileInfo.getFilename());
+                zipOut.putNextEntry(zipEntry);
+                zipOut.write(fileInfo.getData());
+                zipOut.closeEntry();
+            }
+
+            zipOut.finish();
+            return baos.toByteArray();
+        }
     }
 }
