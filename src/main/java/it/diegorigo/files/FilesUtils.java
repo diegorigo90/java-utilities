@@ -273,4 +273,14 @@ public class FilesUtils {
             return baos.toByteArray();
         }
     }
+
+    public static void toFile(byte[] bytes, Path path){
+        try (FileOutputStream fos = new FileOutputStream(path.toFile())) {
+            fos.write(bytes);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

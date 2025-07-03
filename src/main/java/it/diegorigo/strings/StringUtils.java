@@ -55,4 +55,16 @@ public class StringUtils {
     public static String cleanString(String string){
        return string.replaceAll(REGEX_STRANGE_CHARACTERS, "");
     }
+
+    public static String replaceFirstOthers(String input, String target, String firstStringToReplace, String otherStringToReplace){
+        int firstIndex = input.indexOf(target);
+
+        if (firstIndex != -1) {
+            String before = input.substring(0, firstIndex);
+            String after = input.substring(firstIndex + target.length());
+            return before + firstStringToReplace + after.replace(target, otherStringToReplace);
+        }
+
+        return input;
+    }
 }

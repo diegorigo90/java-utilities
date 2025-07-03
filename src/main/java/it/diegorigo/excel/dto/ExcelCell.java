@@ -10,6 +10,9 @@ import it.diegorigo.numbers.NumbersUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.odftoolkit.odfdom.doc.table.OdfTableCell;
 
+import java.time.LocalTime;
+import java.util.Calendar;
+
 public class ExcelCell extends ExcelInfo {
 
     private OdfTableCell odfTableCell;
@@ -47,7 +50,7 @@ public class ExcelCell extends ExcelInfo {
         };
     }
 
-    public void setNumericValue(int value) {
+    public void setNumericValue(double value) {
         switch (excelType) {
             case ODS -> odfTableCell.setDoubleValue((double) value);
             case XLSX -> cell.setCellValue(value);
