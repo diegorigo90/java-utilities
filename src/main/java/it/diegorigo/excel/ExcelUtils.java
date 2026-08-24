@@ -1,10 +1,7 @@
 package it.diegorigo.excel;
 
 import it.diegorigo.excel.annotations.ExcelInfo;
-import it.diegorigo.excel.dto.ExcelCell;
-import it.diegorigo.excel.dto.ExcelDocument;
-import it.diegorigo.excel.dto.ExcelRow;
-import it.diegorigo.excel.dto.ExcelSheet;
+import it.diegorigo.excel.dto.*;
 import it.diegorigo.excel.enums.ExcelType;
 import it.diegorigo.exceptions.UtilityException;
 
@@ -20,7 +17,7 @@ public class ExcelUtils {
 
     public static <T> byte[] generateExcel(List<T> list) throws UtilityException {
         List<Field> fields = getListFieldsOrdered(list.get(0).getClass());
-        try (ExcelDocument document = new ExcelDocument(ExcelType.ODS);) {
+        try (ExcelDocument document = new ExcelDocument(ExcelType.ODS)) {
 
             ExcelSheet sheet = document.getSheetByIndex(0);
 
@@ -51,9 +48,52 @@ public class ExcelUtils {
         }
     }
 
-    private static <T> void writeValue(ExcelCell cell,
-                                       T value) {
-        if (value == null){
+    public static byte[] generateExcelFromPagesInfo(List<ExcelPageInfo<?>> info) throws UtilityException {
+        try (ExcelDocument document = new ExcelDocument(ExcelType.ODS)) {
+            for (ExcelPageInfo<?> pageInfo : info) {
+                ExcelSheet sheet = document.createSheet(pageInfo.getPageName());
+                compilePage(sheet, pageInfo.getContent());
+            }
+
+            return document.toByteArray();
+
+        } catch (Exception e) {
+            throw new UtilityException(e.getMessage());
+        }
+    }
+
+
+    public static <T> void compilePage(ExcelSheet sheet, List<T> list) throws UtilityException {
+        try {
+            List<Field> fields = getListFieldsOrdered(list.get(0).getClass());
+            ExcelRow row = sheet.getRow(0);
+            int j = 0;
+            for (Field field : fields) {
+                String value = field.getName();
+                if (field.isAnnotationPresent(ExcelInfo.class)) {
+                    ExcelInfo annotation = field.getAnnotation(ExcelInfo.class);
+                    field.setAccessible(true);
+                    value = annotation.title();
+                } else {
+                    throw new UtilityException("Annotazione non presente sul campo" + value);
+                }
+                row.getCell(j++).setStringValue(value);
+            }
+            for (T element : list) {
+                row = sheet.createRow();
+                j = 0;
+                for (Field field : fields) {
+                    ExcelCell cell = row.getCell(j++);
+                    writeValue(cell, field.get(element));
+                }
+            }
+        } catch (Exception e) {
+            throw new UtilityException(e.getMessage());
+        }
+    }
+
+    private static <T> void writeValue(ExcelCell cell, T value) {
+        if (value == null) {
             cell.setStringValue("");
         } else if (value instanceof LocalTime) {
             cell.setStringValue(((LocalTime) value).format(DateTimeFormatter.ofPattern("HH:mm")));
@@ -65,7 +105,6 @@ public class ExcelUtils {
     }
 
     private static <T> String convertToString(T item) {
-
         return item.toString();
     }
 

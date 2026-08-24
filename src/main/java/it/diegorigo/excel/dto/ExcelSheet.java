@@ -8,7 +8,9 @@ import it.diegorigo.excel.enums.ExcelType;
 import it.diegorigo.exceptions.UtilityException;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.odftoolkit.odfdom.doc.table.OdfTable;
+import org.odftoolkit.odfdom.doc.table.OdfTableCell;
 import org.odftoolkit.odfdom.doc.table.OdfTableRow;
 
 import java.util.ArrayList;
@@ -26,6 +28,17 @@ public class ExcelSheet extends ExcelInfo {
         this.table = table;
     }
 
+    public void setSheetName(String name) {
+        switch (excelType) {
+            case ODS -> table.setTableName(name);
+            case XLSX -> {
+                Workbook workbook = sheet.getWorkbook();
+                int sheetIndex = workbook.getSheetIndex(sheet);
+                workbook.setSheetName(sheetIndex, name);
+            }
+        }
+    }
+
     public ExcelSheet(Sheet sheet) {
         excelType = ExcelType.XLSX;
         this.sheet = sheet;
@@ -34,8 +47,34 @@ public class ExcelSheet extends ExcelInfo {
     public ExcelRow getRow(int n) {
         return switch (excelType) {
             case ODS -> new ExcelRow(table.getRowByIndex(n));
-            case XLSX -> new ExcelRow(sheet.getRow(n));
+
+            case XLSX -> {
+                Row row = sheet.getRow(n);
+                if (row == null) {
+                    row = sheet.createRow(n);
+                }
+                yield new ExcelRow(row);
+            }
         };
+    }
+
+
+    private boolean isEmptySheet() {
+        List<OdfTableRow> rows = table.getRowList();
+        if (rows.size() == 1) {
+            OdfTableRow firstRow = rows.get(0);
+            int cellCount = firstRow.getCellCount();
+            boolean empty = true;
+            for (int i = 0; i < cellCount; i++) {
+                OdfTableCell cell = firstRow.getCellByIndex(i);
+                if (!cell.getStringValue().isEmpty()) {
+                    empty = false;
+                }
+            }
+            return empty;
+        }
+
+        return false;
     }
 
     public List<ExcelRow> getRowList() {
@@ -59,8 +98,8 @@ public class ExcelSheet extends ExcelInfo {
 
     public ExcelRow createRow() {
         return switch (excelType) {
-            case ODS -> new ExcelRow(table.appendRow()) ;
-            case XLSX -> new ExcelRow(sheet.createRow(sheet.getLastRowNum()+1));
+            case ODS -> new ExcelRow(table.appendRow());
+            case XLSX -> new ExcelRow(sheet.createRow(sheet.getLastRowNum() + 1));
         };
     }
 
@@ -83,7 +122,21 @@ public class ExcelSheet extends ExcelInfo {
                 }
             }
         }
-        ;
+    }
 
+    public void optimize() throws UtilityException {
+        switch (excelType) {
+            case ODS -> {
+                for (int i = 0; i < table.getColumnCount(); i++) {
+                    table.getColumnByIndex(i).setUseOptimalWidth(true);
+                }
+            }
+            case XLSX -> {
+                for (int i = 0; i < sheet.getRow(0).getLastCellNum(); i++) {
+                    sheet.autoSizeColumn(i);
+                }
+            }
+
+        }
     }
 }

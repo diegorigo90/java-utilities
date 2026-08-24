@@ -13,10 +13,13 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.odftoolkit.odfdom.doc.OdfDocument;
 import org.odftoolkit.odfdom.doc.OdfSpreadsheetDocument;
 import org.odftoolkit.odfdom.doc.table.OdfTable;
+import org.odftoolkit.odfdom.doc.table.OdfTableCell;
+import org.odftoolkit.odfdom.doc.table.OdfTableRow;
 
 import java.io.*;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ExcelDocument extends ExcelInfo implements AutoCloseable {
@@ -94,12 +97,39 @@ public class ExcelDocument extends ExcelInfo implements AutoCloseable {
     public ExcelSheet createSheet(String sheetname) {
         return switch (excelType) {
             case ODS -> {
-                OdfTable table = OdfTable.newTable(document);
+                OdfTable table;
+               if ( isEmptyDocument()){
+                   table = document.getTableList(true).get(0);
+               } else {
+                   table = OdfTable.newTable(document,1,1);
+               }
                 table.setTableName(sheetname);
                 yield new ExcelSheet(table);
             }
             case XLSX -> new ExcelSheet(workbook.createSheet(sheetname));
         };
+    }
+
+    private boolean isEmptyDocument(){
+        List<OdfTable> tableList = document.getTableList(true);
+        if (tableList.size() == 1) {
+            OdfTable firstTable = tableList.get(0);
+            List<OdfTableRow> rows = firstTable.getRowList();
+            if (rows.size() == 1) {
+                OdfTableRow firstRow = rows.get(0);
+                int cellCount = firstRow.getCellCount();
+                boolean empty = true;
+                for (int i = 0; i <cellCount; i++) {
+                    OdfTableCell cell = firstRow.getCellByIndex(i);
+                    if (!cell.getStringValue().isEmpty()){
+                        empty = false;
+                    }
+                }
+                return empty;
+            }
+        }
+
+        return false;
     }
 
     public ExcelSheet getSheetByIndex(int index) {

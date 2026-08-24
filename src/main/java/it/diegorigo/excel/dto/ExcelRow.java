@@ -31,7 +31,13 @@ public class ExcelRow extends ExcelInfo {
     public ExcelCell getCell(int n) {
         return switch (excelType) {
             case ODS -> new ExcelCell(odfTableRow.getCellByIndex(n));
-            case XLSX -> new ExcelCell(row.getCell(n));
+            case XLSX -> {
+                Cell cell = row.getCell(n);
+                if (cell == null) {
+                    cell = row.createCell(n);
+                }
+                yield new ExcelCell(cell);
+            }
         };
     }
 
