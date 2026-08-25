@@ -16,43 +16,24 @@ import java.util.Map;
 public class ExcelUtils {
 
     public static <T> byte[] generateExcel(List<T> list) throws UtilityException {
-        List<Field> fields = getListFieldsOrdered(list.get(0).getClass());
         try (ExcelDocument document = new ExcelDocument(ExcelType.ODS)) {
-
+            List<Field> fields = getListFieldsOrdered(list.get(0).getClass());
             ExcelSheet sheet = document.getSheetByIndex(0);
-
-            ExcelRow row = sheet.getRow(0);
-            int j = 0;
-            for (Field field : fields) {
-                String value = field.getName();
-                if (field.isAnnotationPresent(ExcelInfo.class)) {
-                    ExcelInfo annotation = field.getAnnotation(ExcelInfo.class);
-                    field.setAccessible(true);
-                    value = annotation.title();
-                }
-                row.getCell(j++).setStringValue(value);
-            }
-            for (T element : list) {
-                row = sheet.createRow();
-                j = 0;
-                for (Field field : fields) {
-                    ExcelCell cell = row.getCell(j++);
-                    writeValue(cell, field.get(element));
-                }
-            }
-
+            process(list, sheet, fields);
             return document.toByteArray();
-
         } catch (Exception e) {
             throw new UtilityException(e.getMessage());
         }
     }
+
 
     public static byte[] generateExcelFromPagesInfo(List<ExcelPageInfo<?>> info) throws UtilityException {
         try (ExcelDocument document = new ExcelDocument(ExcelType.ODS)) {
             for (ExcelPageInfo<?> pageInfo : info) {
                 ExcelSheet sheet = document.createSheet(pageInfo.getPageName());
-                compilePage(sheet, pageInfo.getContent());
+                List<?> list = pageInfo.getContent();
+                List<Field> fields = getListFieldsOrdered(list.get(0).getClass());
+                process(list, sheet, fields);
             }
 
             return document.toByteArray();
@@ -62,33 +43,30 @@ public class ExcelUtils {
         }
     }
 
-
-    public static <T> void compilePage(ExcelSheet sheet, List<T> list) throws UtilityException {
-        try {
-            List<Field> fields = getListFieldsOrdered(list.get(0).getClass());
-            ExcelRow row = sheet.getRow(0);
-            int j = 0;
+    private static <T> void process(List<T> list, ExcelSheet sheet, List<Field> fields) throws UtilityException, IllegalAccessException {
+        ExcelRow row = sheet.getRow(0);
+        int j = 0;
+        for (Field field : fields) {
+            String value = field.getName();
+            if (field.isAnnotationPresent(ExcelInfo.class)) {
+                ExcelInfo annotation = field.getAnnotation(ExcelInfo.class);
+                field.setAccessible(true);
+                value = annotation.title();
+            } else {
+                throw new UtilityException("Annotazione non presente sul campo" + value);
+            }
+            ExcelCell cell = row.getCell(j++);
+            cell.setBoldText();
+            cell.setStringValue(value);
+        }
+        for (T element : list) {
+            row = sheet.createRow();
+            j = 0;
             for (Field field : fields) {
-                String value = field.getName();
-                if (field.isAnnotationPresent(ExcelInfo.class)) {
-                    ExcelInfo annotation = field.getAnnotation(ExcelInfo.class);
-                    field.setAccessible(true);
-                    value = annotation.title();
-                } else {
-                    throw new UtilityException("Annotazione non presente sul campo" + value);
-                }
-                row.getCell(j++).setStringValue(value);
+                ExcelCell cell = row.getCell(j++);
+                cell.setStandardText();
+                writeValue(cell, field.get(element));
             }
-            for (T element : list) {
-                row = sheet.createRow();
-                j = 0;
-                for (Field field : fields) {
-                    ExcelCell cell = row.getCell(j++);
-                    writeValue(cell, field.get(element));
-                }
-            }
-        } catch (Exception e) {
-            throw new UtilityException(e.getMessage());
         }
     }
 

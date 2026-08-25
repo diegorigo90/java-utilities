@@ -4,14 +4,13 @@
 
 package it.diegorigo.excel.dto;
 
+import it.diegorigo.excel.enums.CellStyleType;
 import it.diegorigo.excel.enums.ExcelType;
 import it.diegorigo.excel.enums.HorizontalAlignment;
+import it.diegorigo.excel.enums.OdsCellStyle;
 import it.diegorigo.numbers.NumbersUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.odftoolkit.odfdom.doc.table.OdfTableCell;
-
-import java.time.LocalTime;
-import java.util.Calendar;
 
 public class ExcelCell extends ExcelInfo {
 
@@ -67,8 +66,7 @@ public class ExcelCell extends ExcelInfo {
     public void setHorizontalAlignment(HorizontalAlignment horizontalAlignment) {
         switch (excelType) {
             case ODS -> odfTableCell.setHorizontalAlignment(horizontalAlignment.toString().toLowerCase());
-            case XLSX ->
-                    cell.getCellStyle().setAlignment(convertToPoiAlignment(horizontalAlignment));
+            case XLSX -> cell.getCellStyle().setAlignment(convertToPoiAlignment(horizontalAlignment));
         }
     }
 
@@ -78,5 +76,19 @@ public class ExcelCell extends ExcelInfo {
             case RIGHT -> org.apache.poi.ss.usermodel.HorizontalAlignment.RIGHT;
             case CENTER -> org.apache.poi.ss.usermodel.HorizontalAlignment.CENTER;
         };
+    }
+
+    public void setBoldText() {
+        switch (excelType) {
+            case ODS -> odfTableCell.getOdfElement().setStyleName(OdsCellStyle.BOLD.getDescription());
+            case XLSX -> cell.setCellStyle(ExcelDocument.workbookStyles.get(CellStyleType.HEADER));
+        }
+    }
+
+    public void setStandardText() {
+        switch (excelType) {
+            case ODS -> odfTableCell.getOdfElement().setStyleName(OdsCellStyle.TEXT.getDescription());
+            case XLSX -> cell.setCellStyle(ExcelDocument.workbookStyles.get(CellStyleType.TEXT));
+        }
     }
 }

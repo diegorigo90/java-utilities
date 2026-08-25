@@ -6,6 +6,7 @@ package it.diegorigo.excel.dto;
 
 import it.diegorigo.excel.enums.CellStyleType;
 import it.diegorigo.excel.enums.ExcelType;
+import it.diegorigo.excel.enums.OdsCellStyle;
 import it.diegorigo.exceptions.UtilityException;
 import it.diegorigo.files.FilesUtils;
 import org.apache.poi.ss.usermodel.*;
@@ -15,12 +16,21 @@ import org.odftoolkit.odfdom.doc.OdfSpreadsheetDocument;
 import org.odftoolkit.odfdom.doc.table.OdfTable;
 import org.odftoolkit.odfdom.doc.table.OdfTableCell;
 import org.odftoolkit.odfdom.doc.table.OdfTableRow;
+import org.odftoolkit.odfdom.dom.element.style.StyleTextPropertiesElement;
+import org.odftoolkit.odfdom.dom.style.OdfStyleFamily;
+import org.odftoolkit.odfdom.incubator.doc.style.OdfDefaultStyle;
+import org.odftoolkit.odfdom.incubator.doc.style.OdfStyle;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.apache.jena.vocabulary.RDFSyntax.doc;
 
 public class ExcelDocument extends ExcelInfo implements AutoCloseable {
 
@@ -28,16 +38,20 @@ public class ExcelDocument extends ExcelInfo implements AutoCloseable {
 
     private Workbook workbook;
 
-    private Map<CellStyleType, CellStyle> styles = new HashMap<>();
+    public static Map<CellStyleType, CellStyle> workbookStyles = new HashMap<>();
+
+    public static Map<CellStyleType, OdfStyle> documentStyles = new HashMap<>();
 
     public ExcelDocument(ExcelType excelType) throws Exception {
         this.excelType = excelType;
         switch (excelType) {
             case XLSX:
                 workbook = new XSSFWorkbook();
+                createBaseWorkbookStyles(workbook);
                 break;
             case ODS:
                 document = OdfSpreadsheetDocument.newSpreadsheetDocument();
+                creteBaseDocumentStyles(document);
                 break;
         }
     }
@@ -49,27 +63,49 @@ public class ExcelDocument extends ExcelInfo implements AutoCloseable {
     public ExcelDocument(File file) throws UtilityException {
         super();
         String extension = FilesUtils.getFileExtension(file);
-        try (FileInputStream fileInputStream = new FileInputStream(file)){
+        try (FileInputStream fileInputStream = new FileInputStream(file)) {
             switch (extension) {
                 case "xlsx":
                     this.excelType = ExcelType.XLSX;
                     workbook = new XSSFWorkbook(fileInputStream);
-                    createBaseStyles(workbook);
+                    createBaseWorkbookStyles(workbook);
                     break;
                 case "ods":
                     this.excelType = ExcelType.ODS;
                     document = OdfDocument.loadDocument(file);
+                    creteBaseDocumentStyles(document);
                     break;
                 default:
-                    throw new IllegalArgumentException(
-                            "The selected file is not currently supported");
+                    throw new IllegalArgumentException("The selected file is not currently supported");
             }
         } catch (Exception e) {
             throw new UtilityException("Error handling Excel file", e);
         }
     }
 
-    private void createBaseStyles(Workbook workbook) {
+    private void creteBaseDocumentStyles(OdfDocument document) {
+        createDocumentHeaderStyle(document);
+        createDefaultStyle(document);
+    }
+
+    private void createDefaultStyle(OdfDocument document) {
+        OdfStyle defaultStyle = document
+                .getDocumentStyles()
+                .newStyle(OdsCellStyle.TEXT.getDescription(), OdfStyleFamily.TableCell);
+        defaultStyle.setProperty(StyleTextPropertiesElement.FontSize, "12pt");
+        documentStyles.put(CellStyleType.TEXT, defaultStyle);
+    }
+
+    private void createDocumentHeaderStyle(OdfDocument document) {
+        OdfStyle boldStyle = document
+                .getDocumentStyles()
+                .newStyle(OdsCellStyle.BOLD.getDescription(), OdfStyleFamily.TableCell);
+        boldStyle.setProperty(StyleTextPropertiesElement.FontWeight, "bold");
+        boldStyle.setProperty(StyleTextPropertiesElement.FontSize, "12pt");
+        documentStyles.put(CellStyleType.HEADER, boldStyle);
+    }
+
+    private void createBaseWorkbookStyles(Workbook workbook) {
         createHeaderStyle(workbook);
         createHyperlinkStyle(workbook);
     }
@@ -82,7 +118,7 @@ public class ExcelDocument extends ExcelInfo implements AutoCloseable {
         font.setBold(true);
         font.setFontHeightInPoints((short) 15);
         headerStyle.setFont(font);
-        styles.put(CellStyleType.HEADER, headerStyle);
+        workbookStyles.put(CellStyleType.HEADER, headerStyle);
     }
 
     private void createHyperlinkStyle(Workbook workbook) {
@@ -91,18 +127,18 @@ public class ExcelDocument extends ExcelInfo implements AutoCloseable {
         font.setColor(IndexedColors.BLUE.getIndex());
         CellStyle style = workbook.createCellStyle();
         style.setFont(font);
-        styles.put(CellStyleType.HYPERLINK, style);
+        workbookStyles.put(CellStyleType.HYPERLINK, style);
     }
 
     public ExcelSheet createSheet(String sheetname) {
         return switch (excelType) {
             case ODS -> {
                 OdfTable table;
-               if ( isEmptyDocument()){
-                   table = document.getTableList(true).get(0);
-               } else {
-                   table = OdfTable.newTable(document,1,1);
-               }
+                if (isEmptyDocument()) {
+                    table = document.getTableList(true).get(0);
+                } else {
+                    table = OdfTable.newTable(document, 1, 1);
+                }
                 table.setTableName(sheetname);
                 yield new ExcelSheet(table);
             }
@@ -110,7 +146,7 @@ public class ExcelDocument extends ExcelInfo implements AutoCloseable {
         };
     }
 
-    private boolean isEmptyDocument(){
+    private boolean isEmptyDocument() {
         List<OdfTable> tableList = document.getTableList(true);
         if (tableList.size() == 1) {
             OdfTable firstTable = tableList.get(0);
@@ -119,9 +155,9 @@ public class ExcelDocument extends ExcelInfo implements AutoCloseable {
                 OdfTableRow firstRow = rows.get(0);
                 int cellCount = firstRow.getCellCount();
                 boolean empty = true;
-                for (int i = 0; i <cellCount; i++) {
+                for (int i = 0; i < cellCount; i++) {
                     OdfTableCell cell = firstRow.getCellByIndex(i);
-                    if (!cell.getStringValue().isEmpty()){
+                    if (!cell.getStringValue().isEmpty()) {
                         empty = false;
                     }
                 }
