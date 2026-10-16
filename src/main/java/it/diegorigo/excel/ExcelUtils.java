@@ -73,7 +73,7 @@ public class ExcelUtils {
     private static <T> Object getStringValue(T element, Field field) throws IllegalAccessException {
         Object value = field.get(element);
         if (isBoolean(field) && value != null) {
-            value = (Boolean) value ? "Vero" : "Falso";
+            value = (Boolean) value ? "SI" : "NO";
         }
         return value;
     }
