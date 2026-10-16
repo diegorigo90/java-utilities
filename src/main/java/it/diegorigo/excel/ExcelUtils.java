@@ -65,9 +65,22 @@ public class ExcelUtils {
             for (Field field : fields) {
                 ExcelCell cell = row.getCell(j++);
                 cell.setStandardText();
-                writeValue(cell, field.get(element));
+                writeValue(cell, getStringValue(element, field));
             }
         }
+    }
+
+    private static <T> Object getStringValue(T element, Field field) throws IllegalAccessException {
+        Object value = field.get(element);
+        if (isBoolean(field) && value != null) {
+            value = (Boolean) value ? "Vero" : "Falso";
+        }
+        return value;
+    }
+
+    public static boolean isBoolean(Field field) {
+        Class<?> type = field.getType();
+        return type.equals(boolean.class) || type.equals(Boolean.class);
     }
 
     private static <T> void writeValue(ExcelCell cell, T value) {
