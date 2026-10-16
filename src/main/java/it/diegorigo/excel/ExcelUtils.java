@@ -32,8 +32,10 @@ public class ExcelUtils {
             for (ExcelPageInfo<?> pageInfo : info) {
                 ExcelSheet sheet = document.createSheet(pageInfo.getPageName());
                 List<?> list = pageInfo.getContent();
-                List<Field> fields = getListFieldsOrdered(list.get(0).getClass());
-                process(list, sheet, fields);
+                if (!list.isEmpty()){
+                    List<Field> fields = getListFieldsOrdered(list.get(0).getClass());
+                    process(list, sheet, fields);
+                }
             }
 
             return document.toByteArray();
